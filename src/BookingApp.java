@@ -1,65 +1,82 @@
+import java.util.HashMap;
 import java.util.LinkedList;
+import java.util.Map;
 import java.util.Queue;
-import java.util.Scanner;
 
+// Domain Model
+abstract class Room {
+    protected String type;
+    public Room(String type) { this.type = type; }
+    public String getType() { return type; }
+}
+
+class SingleRoom extends Room { public SingleRoom() { super("Single"); } }
+
+// Centralized Inventory with Allocation Logic
+class RoomInventory {
+    private Map<String, Integer> roomAvailability = new HashMap<>();
+
+    public RoomInventory() {
+        // Initializing with limited Single rooms to show a FAILED case
+        roomAvailability.put("Single", 2);
+        roomAvailability.put("Double", 1);
+        roomAvailability.put("Suite", 1);
+    }
+
+    public boolean allocateRoom(String type) {
+        int currentCount = roomAvailability.getOrDefault(type, 0);
+        if (currentCount > 0) {
+            roomAvailability.put(type, currentCount - 1); // Inventory Mutation
+            return true;
+        }
+        return false;
+    }
+
+    public int getCount(String type) {
+        return roomAvailability.getOrDefault(type, 0);
+    }
+}
+
+// Guest Intent
 class Reservation {
     private String guestName;
     private String roomType;
-
     public Reservation(String guestName, String roomType) {
         this.guestName = guestName;
         this.roomType = roomType;
     }
-
     public String getGuestName() { return guestName; }
     public String getRoomType() { return roomType; }
 }
 
-class BookingRequestQueue {
-    private Queue<Reservation> requestQueue;
-
-    public BookingRequestQueue() {
-        requestQueue = new LinkedList<>();
-    }
-
-    public void addRequest(Reservation reservation) {
-        requestQueue.offer(reservation);
-    }
-
-    public Reservation getNextRequest() {
-        return requestQueue.poll();
-    }
-
-    public boolean hasPendingRequests() {
-        return !requestQueue.isEmpty();
-    }
-}
-
 public class BookingApp {
     public static void main(String[] args) {
-        Scanner sc = new Scanner(System.in);
-        BookingRequestQueue bookingQueue = new BookingRequestQueue();
+        RoomInventory inventory = new RoomInventory();
+        Queue<Reservation> bookingQueue = new LinkedList<>();
 
-        // 1. Intake Stage: Collect multiple requests
-        System.out.print("How many booking requests? ");
-        int count = Integer.parseInt(sc.nextLine());
+        // FIFO Order: Abhi -> Subha -> Vanmathi
+        bookingQueue.add(new Reservation("Abhi", "Single"));
+        bookingQueue.add(new Reservation("Subha", "Single"));
+        bookingQueue.add(new Reservation("Vanmathi", "Single"));
 
-        for (int i = 0; i < count; i++) {
-            System.out.print("Enter Guest Name: ");
-            String name = sc.nextLine();
-            System.out.print("Enter Room Type: ");
-            String type = sc.nextLine();
-            bookingQueue.addRequest(new Reservation(name, type));
+        System.out.println("Processing Room Allocations\n");
+
+        while (!bookingQueue.isEmpty()) {
+            Reservation request = bookingQueue.poll();
+            boolean success = inventory.allocateRoom(request.getRoomType());
+
+            if (success) {
+                System.out.println("SUCCESS: Room allocated for " + request.getGuestName() +
+                        " (" + request.getRoomType() + ")");
+            } else {
+                System.out.println("FAILED: No " + request.getRoomType() +
+                        " rooms left for " + request.getGuestName());
+            }
         }
 
-        // 2. Output Stage: Match the exact format from your images
-        System.out.println("\nBooking Request Queue");
-        while (bookingQueue.hasPendingRequests()) {
-            Reservation current = bookingQueue.getNextRequest();
-            System.out.println("Processing booking for Guest: " + current.getGuestName() +
-                    ", Room Type: " + current.getRoomType());
-        }
-
-        sc.close();
+        System.out.println("\nFinal Inventory Status:");
+        System.out.println("Single Rooms remaining: " + inventory.getCount("Single"));
+        System.out.println("Double Rooms remaining: " + inventory.getCount("Double"));
+        System.out.println("Suite Rooms remaining: " + inventory.getCount("Suite"));
     }
 }
