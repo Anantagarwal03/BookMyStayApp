@@ -1,5 +1,3 @@
-import java.util.Scanner;
-
 abstract class Room {
     protected int numberOfBeds;
     protected int squareFeet;
@@ -58,24 +56,15 @@ class SuiteRoom extends Room {
 
 public class BookingApp {
     public static void main(String[] args) {
-        Scanner sc = new Scanner(System.in);
-
         System.out.println("Hotel Room Initialization\n");
 
         Room single = new SingleRoom();
         Room doubleRm = new DoubleRoom();
         Room suite = new SuiteRoom();
 
-        System.out.print("Enter available Single Rooms: ");
-        int singleAvailability = sc.nextInt();
-
-        System.out.print("Enter available Double Rooms: ");
-        int doubleAvailability = sc.nextInt();
-
-        System.out.print("Enter available Suite Rooms: ");
-        int suiteAvailability = sc.nextInt();
-
-        System.out.println("\n--- Current Inventory ---");
+        int singleAvailability = 5;
+        int doubleAvailability = 3;
+        int suiteAvailability = 2;
 
         single.displayRoomDetails();
         System.out.println("Available: " + singleAvailability + "\n");
@@ -85,7 +74,5 @@ public class BookingApp {
 
         suite.displayRoomDetails();
         System.out.println("Available: " + suiteAvailability);
-
-        sc.close();
     }
 }
